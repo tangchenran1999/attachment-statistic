@@ -1,0 +1,4 @@
+attachment_statistic:
+  attachment_statistic_enabled:
+    default: true
+    client: true

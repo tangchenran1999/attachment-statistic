@@ -1,4 +1,4 @@
-attachment_statistic:
+plugins:
   attachment_statistic_enabled:
     default: true
     client: true

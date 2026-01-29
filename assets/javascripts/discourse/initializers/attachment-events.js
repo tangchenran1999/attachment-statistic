@@ -25,7 +25,7 @@ export default {
 
           link.addEventListener("click", (event) => {
             // 在这里编写你的逻辑
-            this.handleAttachmentClick(event, post, link, link.innerText || link.innerHTML);
+            this.handleAttachmentClick(event, post, link, link.innerText || link.innerHTML, api);
           });
 
           // 标记已绑定
@@ -35,34 +35,41 @@ export default {
     });
   },
 
-  handleAttachmentClick(event, post, link, linkText) {
+  handleAttachmentClick(event, post, link, linkText, api) {
 
     // 如果你想阻止默认下载行为，可以：
     // event.preventDefault();
-    
-    // 或者发送埋点数据到后端
-    if (String(link?.href).endsWith(".gz") && String(linkText).endsWith('.tar.gz')) {
-      // 获取社区名称、话题名称、用户名、附件名称
-      const topicTitle = post?.get('topic')?.title;
-      const fileName = linkText;
-      const currentUserName = post?.get('currentUser')?.username;
-      fetch('https://databuff.com:19090/api/saasLens/recordAttachmentDownload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          credentials: 'same-origin',
-        },
-        body: JSON.stringify({
-          communityName: 'DataLens',
-          topicName: topicTitle,
-          userName: currentUserName,
-          attachmentName: fileName,
-        }),
-      }).catch(() => {
-        //// eslint-disable-next-line no-console
-        // console.error('Error recording attachment download:', error);
-        // 无返回值处理
-      });
+    try {
+      // 或者发送埋点数据到后端
+      if (String(link?.href).endsWith(".gz") && String(linkText).endsWith('.tar.gz')) {
+        // 获取社区名称、话题名称、用户名、附件名称
+        const topicTitle = post?.get('topic')?.title;
+        const fileName = linkText;
+        const currentUserName = post?.get('currentUser')?.username || api.getCurrentUser()?.username;
+        if (!currentUserName) {
+          return;
+        }
+        fetch('https://databuff.com:19090/api/saasLens/recordAttachmentDownload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            credentials: 'same-origin',
+          },
+          body: JSON.stringify({
+            communityName: 'DataLens',
+            topicName: topicTitle,
+            userName: currentUserName,
+            attachmentName: fileName,
+          }),
+        }).catch(() => {
+          //// eslint-disable-next-line no-console
+          // console.error('Error recording attachment download:', error);
+          // 无返回值处理
+        });
+        return;
+      }
+    } catch {
+      // 无返回值处理
       return;
     }
   },

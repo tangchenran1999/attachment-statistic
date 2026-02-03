@@ -48,20 +48,21 @@ export default {
       // 或者发送埋点数据到后端
       if (String(link?.href).endsWith(".gz") && String(linkText).endsWith('.tar.gz')) {
         // 获取社区名称、话题名称、用户名、附件名称
+		const communityName = post?.topic?.category?.name || 'Default';
         const topicTitle = post?.get('topic')?.title;
         const fileName = linkText;
         const currentUserName = post?.get('currentUser')?.username || api.getCurrentUser()?.username;
         if (!currentUserName) {
           return;
         }
-        fetch('https://databuff.com:19090/api/saasLens/recordAttachmentDownload', {
+        fetch('https://databuff.com/officeApi/saasLens/downloadAttachment', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             credentials: 'same-origin',
           },
           body: JSON.stringify({
-            communityName: post?.topic?.category?.name || 'Default',
+            communityName: communityName,
             topicName: topicTitle,
             userName: currentUserName,
             attachmentName: fileName,

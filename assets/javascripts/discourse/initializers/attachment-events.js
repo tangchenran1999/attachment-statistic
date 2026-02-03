@@ -57,7 +57,7 @@ export default {
         }
         // // eslint-disable-next-line no-console
         // console.log('Attachment downloaded by user:', api.getCurrentUser()?.username);
-        // this.handleCustomDownload(event, post, link, linkText, api);
+        this.handleCustomDownload(event, post, link, linkText, api);
         // fetch('https://databuff.com:19090/api/saasLens/recordAttachmentDownload', {
         //   method: 'POST',
         //   headers: {
@@ -90,7 +90,7 @@ export default {
     if (!currentUserName) {
       return;
     }
-    fetch(`https://databuff.com:19090/api/saasLens/recordAttachmentDownload`, {
+    fetch(`https://databuff.com/officeApi/saasLens/downloadAttachment`, {
       method: 'POST',
       credentials: 'same-origin',
       headers: {

@@ -1,4 +1,6 @@
+import { getOwnerWithFallback } from "discourse/lib/get-owner";
 import { withPluginApi } from "discourse/lib/plugin-api";
+import { i18n } from "discourse-i18n";
 
 export default {
   name: "attachment-click-handler",
@@ -15,7 +17,7 @@ export default {
         // 查找该容器下所有的 a 链接，并过滤出附件是'.tar.gz' 的链接
         const attachments = Array.from(postElement.querySelectorAll("a")).filter(link => {
           // TODO 增加准确的下载地址判断
-          return String(link?.href).endsWith(".tar.gz") && String(link.innerText || link.innerHTML).endsWith('.tar.gz');
+          return String(link?.href).endsWith("DataLens_x86_64_offline.tar.gz") && String(link.innerText || link.innerHTML).endsWith('DataLens_x86_64_offline.tar.gz');
         });
 
         attachments.forEach((link) => {
@@ -26,16 +28,19 @@ export default {
           const currentUserName = post?.get('currentUser')?.username || api.getCurrentUser()?.username;
           // eslint-disable-next-line no-console
           // console.log('类别名称', post?.topic?.category?.name, currentUserName)
-          if (currentUserName) {
-            link.addEventListener("click", (event) => {
-              // 如果有用户名，才阻止原生事件，未登录用户跳过
-              event.preventDefault();
-              event.stopPropagation();
+          link.addEventListener("click", (event) => {
+            // 如果有用户名，才阻止原生事件，未登录用户跳过
+            event.preventDefault();
+            event.stopPropagation();
+            if (currentUserName) {
               this.handleAttachmentClick(event, post, link, link.innerText || link.innerHTML, api);
-            });
-            // 标记已绑定
-            link.dataset.clickBound = "true";
-          }
+              // 标记已绑定
+              link.dataset.clickBound = "true";
+            } else {
+              const dialog = getOwnerWithFallback(this).lookup("service:dialog");
+              dialog.alert(i18n("post.errors.attachment_download_requires_login"));
+            }
+          });
         });
       });
     });

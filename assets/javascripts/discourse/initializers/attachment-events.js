@@ -93,7 +93,7 @@ export default {
     fetch(`https://databuff.com/officeApi/saasLens/downloadAttachment`, {
       method: 'POST',
       mode: 'cors',
-      credentials: 'include',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
       },

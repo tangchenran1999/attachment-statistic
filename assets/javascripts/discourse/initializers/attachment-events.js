@@ -23,20 +23,19 @@ export default {
           if (link.dataset.clickBound) {
             return;
           };
-          link.addEventListener("click", (event) => {
-            const currentUserName = post?.get('currentUser')?.username || api.getCurrentUser()?.username;
-            // eslint-disable-next-line no-console
-            console.log('类别名称', post?.topic?.category?.name, currentUserName)
-            if (currentUserName) {
+          const currentUserName = post?.get('currentUser')?.username || api.getCurrentUser()?.username;
+          // eslint-disable-next-line no-console
+          // console.log('类别名称', post?.topic?.category?.name, currentUserName)
+          if (currentUserName) {
+            link.addEventListener("click", (event) => {
               // 如果有用户名，才阻止原生事件，未登录用户跳过
               event.preventDefault();
               event.stopPropagation();
-            }
-            this.handleAttachmentClick(event, post, link, link.innerText || link.innerHTML, api);
-          });
-
-          // 标记已绑定
-          link.dataset.clickBound = "true";
+              this.handleAttachmentClick(event, post, link, link.innerText || link.innerHTML, api);
+            });
+            // 标记已绑定
+            link.dataset.clickBound = "true";
+          }
         });
       });
     });
@@ -52,7 +51,7 @@ export default {
           return;
         }
         // eslint-disable-next-line no-console
-        console.log('下载 handle')
+        // console.log('下载 handle')
         this.handleCustomDownload(event, post, link, linkText, api);
         return;
       }
@@ -71,7 +70,7 @@ export default {
       return;
     }
     // eslint-disable-next-line no-console
-    console.log('执行自定义下载逻辑', currentUserName);
+    // console.log('执行自定义下载逻辑', currentUserName);
     // 非阻塞埋点
     try {
       // POST 下载：动态创建form并提交，浏览器自动弹窗下载

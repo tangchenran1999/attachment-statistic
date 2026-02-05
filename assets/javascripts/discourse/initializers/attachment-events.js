@@ -17,7 +17,7 @@ export default {
         // 查找该容器下所有的 a 链接，并过滤出附件是'.tar.gz' 的链接
         const attachments = Array.from(postElement.querySelectorAll("a")).filter(link => {
           // TODO 增加准确的下载地址判断
-          return String(link?.href).endsWith("DataLens_x86_64_offline.tar.gz") && String(link.innerText || link.innerHTML).endsWith('DataLens_x86_64_offline.tar.gz');
+          return String(link?.href).endsWith(".tar.gz") && String(link.innerText || link.innerHTML).endsWith('.tar.gz');
         });
 
         attachments.forEach((link) => {

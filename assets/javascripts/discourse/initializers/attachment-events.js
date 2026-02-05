@@ -38,7 +38,7 @@ export default {
               link.dataset.clickBound = "true";
             } else {
               const dialog = getOwnerWithFallback(this).lookup("service:dialog");
-              dialog.alert(i18n("post.errors.attachment_download_requires_login"));
+              dialog.alert("未登录!请先登录!");
             }
           });
         });

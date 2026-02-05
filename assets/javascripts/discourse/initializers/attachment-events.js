@@ -1,6 +1,5 @@
 import { getOwnerWithFallback } from "discourse/lib/get-owner";
 import { withPluginApi } from "discourse/lib/plugin-api";
-import { i18n } from "discourse-i18n";
 
 export default {
   name: "attachment-click-handler",
@@ -17,23 +16,23 @@ export default {
         // 查找该容器下所有的 a 链接，并过滤出附件是'.tar.gz' 的链接
         const attachments = Array.from(postElement.querySelectorAll("a")).filter(link => {
           // TODO 增加准确的下载地址判断
-          return String(link?.href).endsWith(".tar.gz") && String(link.innerText || link.innerHTML).endsWith('.tar.gz');
+          const nameRegex = /DataLens_?.*\.tar\.gz$/;
+          const isLinkHrefMatch = nameRegex.test(String(link?.href));
+          const isLinkTextMatch = nameRegex.test(String(link.innerText));
+          return isLinkHrefMatch || isLinkTextMatch;
         });
-
         attachments.forEach((link) => {
           // 检查是否已经绑定过，防止重复绑定（Discourse 某些情况下会多次渲染）
           if (link.dataset.clickBound) {
             return;
           };
           const currentUserName = post?.get('currentUser')?.username || api.getCurrentUser()?.username;
-          // eslint-disable-next-line no-console
-          // console.log('类别名称', post?.topic?.category?.name, currentUserName)
           link.addEventListener("click", (event) => {
             // 如果有用户名，才阻止原生事件，未登录用户跳过
             event.preventDefault();
             event.stopPropagation();
             if (currentUserName) {
-              this.handleAttachmentClick(event, post, link, link.innerText || link.innerHTML, api);
+              this.handleAttachmentClick(event, post, link, link.innerText, api);
               // 标记已绑定
               link.dataset.clickBound = "true";
             } else {
@@ -49,20 +48,43 @@ export default {
   handleAttachmentClick(event, post, link, linkText, api) {
     try {
       // 或者发送埋点数据到后端
-      if (String(link?.href).endsWith(".gz") && String(linkText).endsWith('.tar.gz')) {
-        // 获取社区名称、话题名称、用户名、附件名称
-        const currentUserName = post?.get('currentUser')?.username || api.getCurrentUser()?.username;
-        if (!currentUserName) {
-          return;
-        }
-        // eslint-disable-next-line no-console
-        // console.log('下载 handle')
-        this.handleCustomDownload(event, post, link, linkText, api);
+      // 获取社区名称、话题名称、用户名、附件名称
+      const currentUserName = post?.get('currentUser')?.username || api.getCurrentUser()?.username;
+      if (!currentUserName) {
         return;
       }
+      const dialog = getOwnerWithFallback(this).lookup("service:dialog");
+
+      fetch('https://databuff.com/officeApi//saasLens/checkDownloadAttachment', {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          communityName: post?.topic?.category?.name || 'Default',
+          topicName: post?.get('topic')?.title,
+          userName: currentUserName,
+          attachmentName: linkText,
+        }),
+      }).then(response => response.json())
+        .then(res => {
+          // // eslint-disable-next-line no-console
+          // console.log('下载权限返回数据:', res);
+          if (res?.status === 200 && String(res?.message)?.toLowerCase() === 'success' && !res?.data) {
+            // 允许下载，执行自定义下载逻辑
+            this.handleCustomDownload(event, post, link, linkText, api);
+          } else {
+            // 不允许下载，提示用户
+            dialog.alert(res?.message || "下载附件失败");
+          }
+        })
+        .catch((error) => {
+          dialog.alert(error?.message || "下载附件失败");
+        });
     } catch {
       // 无返回值处理
-
       return;
     }
   },
@@ -74,8 +96,6 @@ export default {
     if (!currentUserName) {
       return;
     }
-    // eslint-disable-next-line no-console
-    // console.log('执行自定义下载逻辑', currentUserName);
     // 非阻塞埋点
     try {
       // POST 下载：动态创建form并提交，浏览器自动弹窗下载

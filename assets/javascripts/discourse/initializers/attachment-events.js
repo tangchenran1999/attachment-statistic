@@ -37,7 +37,10 @@ export default {
               link.dataset.clickBound = "true";
             } else {
               const dialog = getOwnerWithFallback(this).lookup("service:dialog");
-              dialog.alert("未登录!请先登录!");
+              dialog.alert("未登录!请先登录!").then(() => {
+                // 跳转到登录页
+                window.location.href = "https://community.databuff.com/login";
+              });
             }
           });
         });
